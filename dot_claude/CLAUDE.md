@@ -1,0 +1,14 @@
+When creating engineering plans follow this folder organization structure:
+
+```
+YYYY-MM-DD-<slug>/
+    ├── README.md         # plan
+    ├── datapackage.json  # frictionless data package describing files in data/ including human readable column titles and descriptions
+    ├── data/             # datasets
+    ├── reports/          # code walkthroughs, incident reports, explanation deep dives, reference materials, etc
+    ├── scripts/          # ad-hoc scripts
+    ├── tools/            # standalone html tools
+    └── .gitignore        # ignore files in data/ and data-raw/ that exceed 10MB
+```
+
+Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`.
