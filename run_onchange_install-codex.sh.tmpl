@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Codex CLI ships prebuilt musl binaries on GitHub releases (no npm/brew dep,
+# which the VMs don't manage). chezmoi resolves the latest release tag below at
+# apply time; when OpenAI ships a new release this file's content changes, so
+# run_onchange re-runs and upgrades the binary in place.
+tag="{{ (gitHubLatestRelease "openai/codex").TagName }}"
+latest="${tag#rust-v}"
+
+if command -v codex >/dev/null 2>&1; then
+  current="$(codex --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+  [ "$current" = "$latest" ] && exit 0
+fi
+
+case "$(uname -m)" in
+  x86_64|amd64) arch="x86_64" ;;
+  aarch64|arm64) arch="aarch64" ;;
+  *) echo "install-codex: unsupported arch $(uname -m); skipping" >&2; exit 0 ;;
+esac
+
+asset="codex-${arch}-unknown-linux-musl.tar.gz"
+mkdir -p "$HOME/.local/bin"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+curl -fsSL "https://github.com/openai/codex/releases/download/${tag}/${asset}" \
+  -o "$tmp/codex.tar.gz"
+tar xzf "$tmp/codex.tar.gz" -C "$tmp"
+install -m 0755 "$tmp/codex-${arch}-unknown-linux-musl" "$HOME/.local/bin/codex"
