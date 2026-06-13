@@ -1,0 +1,17 @@
+# Skills installed from GitHub and managed by chezmoi.
+# `chezmoi apply` fetches the repo tarball into each tool's skills dir;
+# `chezmoi update` refreshes it (also auto-refreshed after refreshPeriod).
+
+[".claude/skills/book-mastery"]
+    type = "archive"
+    url = "https://github.com/fjuniorr/book-mastery-skill/archive/refs/heads/main.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
+
+[".codex/skills/book-mastery"]
+    type = "archive"
+    url = "https://github.com/fjuniorr/book-mastery-skill/archive/refs/heads/main.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
