@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# git-lfs ships prebuilt Linux binaries on GitHub releases (no apt/brew dep,
+# which the VMs don't manage). chezmoi resolves the latest release tag below at
+# apply time; when a new release ships this file's content changes, so
+# run_onchange re-runs and upgrades the binary in place.
+tag="{{ (gitHubLatestRelease "git-lfs/git-lfs").TagName }}"
+latest="${tag#v}"
+
+install_binary() {
+  case "$(uname -m)" in
+    x86_64|amd64) arch="amd64" ;;
+    aarch64|arm64) arch="arm64" ;;
+    *) echo "install-git-lfs: unsupported arch $(uname -m); skipping" >&2; exit 0 ;;
+  esac
+
+  asset="git-lfs-linux-${arch}-${tag}.tar.gz"
+  mkdir -p "$HOME/.local/bin"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+
+  curl -fsSL "https://github.com/git-lfs/git-lfs/releases/download/${tag}/${asset}" \
+    -o "$tmp/git-lfs.tar.gz"
+  tar xzf "$tmp/git-lfs.tar.gz" -C "$tmp"
+  install -m 0755 "$tmp/git-lfs-${latest}/git-lfs" "$HOME/.local/bin/git-lfs"
+}
+
+if command -v git-lfs >/dev/null 2>&1; then
+  current="$(git-lfs version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+  [ "$current" = "$latest" ] || install_binary
+else
+  install_binary
+fi
+
+# ~/.gitconfig (applied by chezmoi before scripts run) already carries the lfs
+# filter section, so this validates rather than rewrites it. --skip-repo keeps
+# it from touching hooks of whatever repo the apply happens to run inside.
+git lfs install --skip-repo
