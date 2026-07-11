@@ -18,6 +18,15 @@ Then open a new shell (or `exec bash -l`) — picks up the updated
 chezmoi update
 ```
 
+If a managed file changed on the VM since chezmoi last wrote it (e.g. a
+tool edited its own config), chezmoi prompts per file with
+overwrite/skip/quit. Pass `--force` to skip the prompts and always
+overwrite with the repo's version:
+
+```sh
+chezmoi update --force
+```
+
 If the update touched shell config (aliases, prompt, `~/.bashrc`),
 reload to see it in the current shell:
 
