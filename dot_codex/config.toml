@@ -1,0 +1,5 @@
+model_provider = "exe-codex"
+
+[model_providers.exe-codex]
+name = "exe-codex"
+base_url = "https://codex.int.exe.xyz/v1"
