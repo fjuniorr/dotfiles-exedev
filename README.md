@@ -25,6 +25,19 @@ It prints a URL + code; approve it from a browser on any other device.
 (`--no-browser` alone is not enough — the default flow redirects to
 localhost on the VM.)
 
+## Dashlane CLI first use
+
+`dcli` is installed by chezmoi, but Dashlane requires an interactive
+device registration before the first sync on each VM:
+
+```sh
+dcli sync
+```
+
+It prompts for the account email, an OTP (sent by email or from 2FA),
+and the master password. Subsequent `dcli` calls reuse the registered
+device.
+
 ## Update a VM
 
 ```sh
