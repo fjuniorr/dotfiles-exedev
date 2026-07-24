@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# just ships prebuilt musl binaries on GitHub releases (no apt/brew dep,
+# which the VMs don't manage). chezmoi resolves the latest release tag below
+# at apply time; when a new release ships this file's content changes, so
+# run_onchange re-runs and upgrades the binary in place.
+tag="{{ (gitHubLatestRelease "casey/just").TagName }}"
+
+install_binary() {
+  case "$(uname -m)" in
+    x86_64|amd64) target="x86_64-unknown-linux-musl" ;;
+    aarch64|arm64) target="aarch64-unknown-linux-musl" ;;
+    *) echo "install-just: unsupported arch $(uname -m); skipping" >&2; exit 0 ;;
+  esac
+
+  mkdir -p "$HOME/.local/bin"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+
+  curl -fsSL "https://github.com/casey/just/releases/download/${tag}/just-${tag}-${target}.tar.gz" \
+    -o "$tmp/just.tar.gz"
+  tar xzf "$tmp/just.tar.gz" -C "$tmp" just
+  install -m 0755 "$tmp/just" "$HOME/.local/bin/just"
+}
+
+if command -v just >/dev/null 2>&1; then
+  current="$(just --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+  [ "$current" = "$tag" ] || install_binary
+else
+  install_binary
+fi

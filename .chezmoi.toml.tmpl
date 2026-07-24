@@ -1,0 +1,9 @@
+{{/* This repo is public, so work identifiers stay out of it. These are asked
+     once per VM at `chezmoi init` and persisted in the VM-local config
+     (~/.config/chezmoi/chezmoi.toml); `chezmoi update` never re-asks. */ -}}
+{{- $ficksSsoStartUrl := promptStringOnce . "ficksSsoStartUrl" "Ficks AWS SSO start URL" -}}
+{{- $ficksAwsAccountId := promptStringOnce . "ficksAwsAccountId" "Ficks AWS account ID" -}}
+
+[data]
+    ficksSsoStartUrl = {{ $ficksSsoStartUrl | quote }}
+    ficksAwsAccountId = {{ $ficksAwsAccountId | quote }}
