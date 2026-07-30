@@ -3,3 +3,11 @@ model_provider = "exe-codex"
 [model_providers.exe-codex]
 name = "exe-codex"
 base_url = "https://codex.int.exe.xyz/v1"
+
+# Codex renders its own status line natively, so unlike Claude (which shells out
+# to ccstatusline) this needs no extra process. Items mirror the Claude status
+# line: where am I, what's running, how much room is left. Codex bills against a
+# subscription rather than per token, so the rate-limit windows stand in for
+# Claude's session cost.
+[tui]
+status_line = ["project-name", "git-branch", "model-with-reasoning", "context-used", "five-hour-limit", "weekly-limit"]
