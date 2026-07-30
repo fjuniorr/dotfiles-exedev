@@ -1,0 +1,82 @@
+{
+  "version": 3,
+  "lines": [
+    [
+      {
+        "id": "cwd",
+        "type": "current-working-dir",
+        "rawValue": true,
+        "metadata": {
+          "fishStyle": "true",
+          "abbreviateHome": "true"
+        }
+      },
+      {
+        "id": "sep-1",
+        "type": "separator"
+      },
+      {
+        "id": "branch",
+        "type": "git-branch",
+        "color": "magenta"
+      },
+      {
+        "id": "sep-2",
+        "type": "separator"
+      },
+      {
+        "id": "model",
+        "type": "model",
+        "color": "cyan",
+        "rawValue": true
+      },
+      {
+        "id": "sep-3",
+        "type": "separator"
+      },
+      {
+        "id": "context",
+        "type": "context-percentage-usable",
+        "color": "green",
+        "rawValue": true
+      },
+      {
+        "id": "sep-4",
+        "type": "separator"
+      },
+      {
+        "id": "cost",
+        "type": "session-cost",
+        "color": "brightRed",
+        "rawValue": true
+      },
+      {
+        "id": "sep-5",
+        "type": "separator"
+      },
+      {
+        "id": "block",
+        "type": "block-timer",
+        "color": "yellow",
+        "rawValue": true
+      }
+    ]
+  ],
+  "flexMode": "full-minus-40",
+  "compactThreshold": 60,
+  "colorLevel": 2,
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false
+  }
+}
