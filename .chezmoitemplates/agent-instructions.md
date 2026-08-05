@@ -1,14 +1,30 @@
-When creating engineering plans follow this folder organization structure:
+When working on the context of an engineering plans (`/home/exedev/plans`) follow this structure:
 
-```
-YYYY-MM-DD-<slug>/
-    ├── README.md         # plan
-    ├── datapackage.json  # frictionless data package describing files in data/ including human readable column titles and descriptions
-    ├── data/             # datasets
-    ├── reports/          # code walkthroughs, incident reports, explanation deep dives, reference materials, etc
-    ├── scripts/          # ad-hoc scripts
-    ├── tools/            # standalone html tools
-    └── .gitignore        # ignore files in data/ and data-raw/ that exceed 10MB
+- `README.md`: Captures the background context for the project, including problem and objectives
+- `DECISIONS.md`: Records decisions whose rationale should be preserved, especially alternatives that were considered but rejected (append-only)
+- `TODO.md`: Tracks remaining work
+- `artifacts/`: Stores supporting evidence and working material
+
+Code is the source of truth for design and implementation. Commits explain individual changes. Pull requests synthesize work for review.
+
+`DECISIONS.md` is a Markdown list. Each top-level item is one decision, with optional indented Markdown for supporting context.
+
+`TODO.md` is a Markdown checklist. Each top-level item is one remaining task, with optional indented Markdown for supporting context.
+
+```text
+plans/
+└── YYYY-MM-DD-<slug>/
+    ├── README.md                # project context
+    ├── DECISIONS.md             # durable reasoning
+    ├── TODO.md                  # remaining work
+    ├── .gitignore               # ignore large files and PII
+    └── artifacts/
+        ├── prototypes/          # UI and UX prototypes
+        ├── transcripts/         # meetings, interviews, conversations
+        ├── data/                # datasets
+        ├── reports/             # code walkthroughs, incident reports, deep dives, reference materials
+        ├── scripts/             # ad-hoc scripts
+        └── tools/               # standalone utilities
 ```
 
 Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`.
