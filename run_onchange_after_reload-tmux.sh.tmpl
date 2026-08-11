@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tmux reads its config only when the server starts, so a server that has been
+# up for a while keeps whatever was on disk that day — `chezmoi apply` updates
+# the file and the running session never notices. `chezmoi status` looks clean
+# throughout, since it compares file contents, not what the process loaded.
+#
+# The hash below is what makes this re-run: change dot_tmux.conf and the
+# rendered script changes, which is what run_onchange keys on.
+# dot_tmux.conf hash: {{ include "dot_tmux.conf" | sha256sum }}
+
+# Fails when no server is running, which is the normal case on a fresh VM.
+tmux source-file "$HOME/.tmux.conf" 2>/dev/null || true
