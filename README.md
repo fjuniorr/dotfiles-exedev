@@ -45,8 +45,13 @@ exported from `dotfiles/init.sh`. The notebook itself is not managed
 here — clone it to the path that variable points at:
 
 ```sh
-git clone git@github.com:fjuniorr/pim.git ~/pim
+git clone https://github.int.exe.xyz/fjuniorr/pim.git ~/pim
 ```
+
+HTTPS through the integration host, not SSH — no credentials live on the
+VM. An auth error or 404 means the integration isn't attached to `pim`
+yet; `curl -s https://reflection.int.exe.xyz/integrations` lists what
+this VM can reach.
 
 Until it exists, `ss` shows an empty list rather than an error, since
 `zt search` just finds no `Actions/` or `Reference/` to read.
