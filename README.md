@@ -40,16 +40,16 @@ device.
 
 ## Notebook search (`ss`) first use
 
-`zt`, `fzf` and `glow` are installed by chezmoi, but the notebook itself
-is not — clone it and point `ZETTEL_DIR` at the clone:
+`zt`, `fzf` and `glow` are installed by chezmoi, and `ZETTEL_DIR` is
+exported from `dotfiles/init.sh`. The notebook itself is not managed
+here — clone it to the path that variable points at:
 
 ```sh
 git clone git@github.com:fjuniorr/pim.git ~/pim
-echo 'export ZETTEL_DIR="$HOME/pim"' >> ~/.local/share/dotfiles/init.sh
 ```
 
-Without `ZETTEL_DIR`, `zt search` falls back to `~/Notebook` (the path on
-the mac) and `ss` just shows an empty list — no error.
+Until it exists, `ss` shows an empty list rather than an error, since
+`zt search` just finds no `Actions/` or `Reference/` to read.
 
 `ss` copies the picked note through OSC 52 rather than a local clipboard
 tool, so the result lands on the clipboard of the machine you're SSH'd in
