@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# glow renders markdown in the terminal. Two things here already assume it:
+# the `pp` preview window in dotfiles/functions.sh, and the `zt search`
+# preview pane. Both fail quietly without it, so it's a real dependency
+# rather than a nicety.
+#
+# Prebuilt binaries come from GitHub releases (no apt/brew dep, which the VMs
+# don't manage). chezmoi resolves the latest release tag at apply time; when a
+# new release ships this file's content changes, so run_onchange re-runs and
+# upgrades the binary in place.
+tag="{{ (gitHubLatestRelease "charmbracelet/glow").TagName }}"
+ver="${tag#v}"
+
+install_binary() {
+  case "$(uname -m)" in
+    x86_64|amd64) target="x86_64" ;;
+    aarch64|arm64) target="arm64" ;;
+    *) echo "install-glow: unsupported arch $(uname -m); skipping" >&2; exit 0 ;;
+  esac
+
+  mkdir -p "$HOME/.local/bin"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+
+  curl -fsSL "https://github.com/charmbracelet/glow/releases/download/${tag}/glow_${ver}_Linux_${target}.tar.gz" \
+    -o "$tmp/glow.tar.gz"
+  # The archive nests everything under glow_<ver>_Linux_<arch>/; strip that and
+  # take just the binary, leaving the README/completions/manpages behind.
+  tar xzf "$tmp/glow.tar.gz" -C "$tmp" --strip-components=1 \
+    "glow_${ver}_Linux_${target}/glow"
+  install -m 0755 "$tmp/glow" "$HOME/.local/bin/glow"
+}
+
+if command -v glow >/dev/null 2>&1; then
+  current="$(glow --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+  [ "$current" = "$ver" ] || install_binary
+else
+  install_binary
+fi

@@ -38,6 +38,26 @@ It prompts for the account email, an OTP (sent by email or from 2FA),
 and the master password. Subsequent `dcli` calls reuse the registered
 device.
 
+## Notebook search (`ss`) first use
+
+`zt`, `fzf` and `glow` are installed by chezmoi, but the notebook itself
+is not — clone it and point `ZETTEL_DIR` at the clone:
+
+```sh
+git clone git@github.com:fjuniorr/pim.git ~/pim
+echo 'export ZETTEL_DIR="$HOME/pim"' >> ~/.local/share/dotfiles/init.sh
+```
+
+Without `ZETTEL_DIR`, `zt search` falls back to `~/Notebook` (the path on
+the mac) and `ss` just shows an empty list — no error.
+
+`ss` copies the picked note through OSC 52 rather than a local clipboard
+tool, so the result lands on the clipboard of the machine you're SSH'd in
+from. Some keybinds are mac-only and do nothing here: `enter` on an
+existing note (Obsidian), `ctrl-t` (iTerm), `f2` (VS Code). Creating a
+note by typing a query and pressing `enter` does work, as do search,
+preview, `ctrl-x` (wikilink) and `ctrl-s` (gist).
+
 ## Update a VM
 
 ```sh

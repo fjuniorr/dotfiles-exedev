@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# zt (fjuniorr/zettel) backs the `ss` alias: fuzzy search over the notebook,
+# with note creation and wikilink/gist actions on the fzf keybinds. It reads
+# the vault path from ZETTEL_DIR (exported in dotfiles/init.sh) and shells out
+# to fzf and glow, both installed by their own scripts above.
+#
+# The repo publishes no releases and `zt` has no --version, so there's nothing
+# to compare an installed copy against. Instead chezmoi resolves upstream HEAD
+# at apply time and pins it in the comment below: when a new commit lands, this
+# file's content changes and run_onchange re-runs. uv keys a git install by
+# commit rather than by the version in pyproject.toml, so --force is what
+# actually refreshes it.
+#
+# zettel@{{ output "git" "ls-remote" "https://github.com/fjuniorr/zettel.git" "HEAD" | trunc 40 }}
+
+if ! command -v uv >/dev/null 2>&1; then
+  # linuxbrew isn't always on PATH in chezmoi's non-interactive run env
+  export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+fi
+
+uv tool install --force git+https://github.com/fjuniorr/zettel.git
