@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# prune — ask each installed tool to clean up after itself.
+#
+# Dry run by default; --apply performs the work.
+#
+# This script never deletes anything itself. Every step invokes a cleanup command
+# the owning tool provides, so the tool decides what is disposable — there are no
+# age rules, no "superseded version" detection, and no rm anywhere in this file.
+# Space held by things without a cleanup verb of their own is reported, not touched.
+
+set -uo pipefail
+
+# Repos handed to git gc. gc honours gc.pruneExpire (2 weeks by default), so
+# recently orphaned commits survive.
+GC_REPOS=(
+  "$HOME/pim"
+  "$HOME/plans"
+  "$HOME/ficks"
+)
+
+# Ceiling handed to journalctl --vacuum-size; systemd decides which journals go.
+JOURNAL_KEEP=100M
+
+APPLY=false
+
+usage() {
+  cat <<'EOF'
+usage: prune [--apply]
+
+Asks each installed tool to run its own cleanup. Reports what it would do and
+exits; add --apply to actually run them. Never deletes anything directly.
+
+  -a, --apply   run the cleanup commands, instead of only reporting
+  -h, --help    this text
+EOF
+}
+
+while (($#)); do
+  case $1 in
+    -a | --apply) APPLY=true ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'prune: unknown option %s\n\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+avail_kb() { df -Pk / | awk 'NR==2 {print $4}'; }
+
+human() {
+  local n=${1:-0}
+  ((n < 0)) && n=0
+  numfmt --to=iec --suffix=B "$n" 2>/dev/null || printf '%sB' "$n"
+}
+
+heading() { printf '\n\033[1m%s\033[0m\n' "$1"; }
+report() { printf '  %-30s %s\n' "$1" "$2"; }
+
+# sweep <label> <command>... — hand the cleanup decision to the owning tool.
+sweep() {
+  local label=$1
+  shift
+  command -v "$1" >/dev/null 2>&1 || { report "$label" '(not installed)'; return 0; }
+  if ! $APPLY; then
+    report "$label" "would run: $*"
+    return 0
+  fi
+  local before
+  before=$(avail_kb)
+  "$@" >/dev/null 2>&1
+  report "$label" "$(human $((($(avail_kb) - before) * 1024)))"
+}
+
+START_AVAIL=$(avail_kb)
+printf '\033[1mprune\033[0m — %s available on /\n' "$(human $((START_AVAIL * 1024)))"
+$APPLY || printf 'dry run: reporting only, nothing will be removed\n'
+
+heading 'Package and tool caches'
+sweep 'uv' uv cache prune
+sweep 'npm' npm cache clean --force
+sweep 'yarn' yarn cache clean
+sweep 'pnpm' pnpm store prune
+sweep 'pip' pip cache purge
+sweep 'homebrew' brew cleanup -s --prune=all
+
+heading 'Docker'
+# Removes only what nothing references: dangling images, stopped containers,
+# unused networks, build cache. Running containers and their images are untouched.
+sweep 'unreferenced objects' docker system prune -f
+
+heading 'Journals'
+if sudo -n true 2>/dev/null; then
+  sweep 'journald' sudo -n journalctl --vacuum-size="$JOURNAL_KEEP"
+else
+  report 'journald' '(needs passwordless sudo, skipped)'
+fi
+
+heading 'Git repacks'
+for repo in "${GC_REPOS[@]}"; do
+  [[ -d $repo/.git ]] || continue
+  sweep "${repo##*/}" git -C "$repo" gc --quiet
+done
+
+if $APPLY; then
+  END_AVAIL=$(avail_kb)
+  printf '\n\033[1mreclaimed %s\033[0m — %s available on /\n' \
+    "$(human $(((END_AVAIL - START_AVAIL) * 1024)))" "$(human $((END_AVAIL * 1024)))"
+else
+  printf '\nnothing removed — re-run with --apply\n'
+fi
+df -h / | tail -1
+
+# Held by running containers, so no prune reaches it. Freeing it means taking the
+# stack down by hand, and rebuilding the images costs the space straight back.
+if command -v docker >/dev/null 2>&1; then
+  held=$(docker system df --format '{{.Reclaimable}}' 2>/dev/null | head -1)
+  [[ -n ${held:-} ]] && printf 'docker images hold %s, in use by running containers\n' "$held"
+fi
