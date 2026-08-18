@@ -1,9 +1,14 @@
+## Writing
+
+- Use google developer documentation style guide (https://developers.google.com/style) when writing.
+
+## Engineering plans
+
 When working on the context of an engineering plans (`/home/exedev/plans`) follow this structure:
 
 - `README.md`: Captures the background context for the project, including problem and objectives
 - `DECISIONS.md`: Records decisions whose rationale should be preserved, especially alternatives that were considered but rejected (append-only)
 - `TODO.md`: Tracks remaining work
-- `artifacts/`: Stores supporting evidence and working material
 
 Code is the source of truth for design and implementation. Commits explain individual changes. Pull requests synthesize work for review.
 
@@ -14,17 +19,16 @@ Code is the source of truth for design and implementation. Commits explain indiv
 ```text
 plans/
 └── YYYY-MM-DD-<slug>/
-    ├── README.md                # project context
-    ├── DECISIONS.md             # durable reasoning
-    ├── TODO.md                  # remaining work
-    ├── .gitignore               # ignore large files and PII
-    └── artifacts/
-        ├── prototypes/          # UI and UX prototypes
-        ├── transcripts/         # meetings, interviews, conversations
-        ├── data/                # datasets
-        ├── reports/             # code walkthroughs, incident reports, deep dives, reference materials
-        ├── scripts/             # ad-hoc scripts
-        └── tools/               # standalone utilities
+    ├── README.md            # project context
+    ├── DECISIONS.md         # durable reasoning
+    ├── TODO.md              # remaining work
+    ├── .gitignore           # ignore large files and PII
+    ├── prototypes/          # UI and UX prototypes
+    ├── transcripts/         # meetings, interviews, conversations
+    ├── data/                # datasets
+    ├── reports/             # code walkthroughs, incident reports, deep dives, reference materials
+    ├── scripts/             # ad-hoc scripts
+    └── tools/               # standalone utilities
 ```
 
 Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`.
