@@ -4,27 +4,42 @@ set -euo pipefail
 # Codex CLI ships prebuilt musl binaries on GitHub releases (no npm/brew dep,
 # which the VMs don't manage). chezmoi resolves the latest release tag below at
 # apply time; when OpenAI ships a new release this file's content changes, so
-# run_onchange re-runs and upgrades the binary in place.
+# run_onchange re-runs and upgrades the binaries in place.
 tag="{{ template "github-latest-tag" "openai/codex" }}"
 latest="${tag#rust-v}"
 
-if command -v codex >/dev/null 2>&1; then
+install_binaries() {
+  case "$(uname -m)" in
+    x86_64|amd64) arch="x86_64" ;;
+    aarch64|arm64) arch="aarch64" ;;
+    *) echo "install-codex: unsupported arch $(uname -m); skipping" >&2; exit 0 ;;
+  esac
+
+  mkdir -p "$HOME/.local/bin"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+
+  # Code Mode runs in a sidecar process that codex spawns as a sibling of its
+  # own executable, shipped as its own release asset. The npm and Homebrew
+  # packages bundle it; the standalone binary doesn't, and without it Code Mode
+  # fails closed ("enable `features.code_mode_host` and install
+  # `codex-code-mode-host`"). Both come from the same tag so they stay matched.
+  for bin in codex codex-code-mode-host; do
+    target="${bin}-${arch}-unknown-linux-musl"
+    curl -fsSL "https://github.com/openai/codex/releases/download/${tag}/${target}.tar.gz" \
+      -o "$tmp/${bin}.tar.gz"
+    tar xzf "$tmp/${bin}.tar.gz" -C "$tmp"
+    install -m 0755 "$tmp/${target}" "$HOME/.local/bin/${bin}"
+  done
+}
+
+# Guard on both binaries, not just the version: an existing install that
+# predates the sidecar is already current by version but still missing half of
+# what it needs.
+if command -v codex >/dev/null 2>&1 \
+  && [ -x "$HOME/.local/bin/codex-code-mode-host" ]; then
   current="$(codex --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
-  [ "$current" = "$latest" ] && exit 0
+  [ "$current" = "$latest" ] || install_binaries
+else
+  install_binaries
 fi
-
-case "$(uname -m)" in
-  x86_64|amd64) arch="x86_64" ;;
-  aarch64|arm64) arch="aarch64" ;;
-  *) echo "install-codex: unsupported arch $(uname -m); skipping" >&2; exit 0 ;;
-esac
-
-asset="codex-${arch}-unknown-linux-musl.tar.gz"
-mkdir -p "$HOME/.local/bin"
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-
-curl -fsSL "https://github.com/openai/codex/releases/download/${tag}/${asset}" \
-  -o "$tmp/codex.tar.gz"
-tar xzf "$tmp/codex.tar.gz" -C "$tmp"
-install -m 0755 "$tmp/codex-${arch}-unknown-linux-musl" "$HOME/.local/bin/codex"
