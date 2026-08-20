@@ -5,7 +5,7 @@ set -euo pipefail
 # (no npm/brew dep, which the VMs don't manage). chezmoi resolves the latest
 # release tag below at apply time; when a new release ships this file's
 # content changes, so run_onchange re-runs and upgrades the binary in place.
-tag="{{ (gitHubLatestRelease "Dashlane/dashlane-cli").TagName }}"
+tag="{{ template "github-latest-tag" "Dashlane/dashlane-cli" }}"
 latest="${tag#v}"
 
 if command -v dcli >/dev/null 2>&1; then

@@ -10,7 +10,7 @@ set -euo pipefail
 # don't manage). chezmoi resolves the latest release tag at apply time; when a
 # new release ships this file's content changes, so run_onchange re-runs and
 # upgrades the binary in place.
-tag="{{ (gitHubLatestRelease "charmbracelet/glow").TagName }}"
+tag="{{ template "github-latest-tag" "charmbracelet/glow" }}"
 ver="${tag#v}"
 
 install_binary() {

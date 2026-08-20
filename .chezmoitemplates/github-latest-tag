@@ -1,0 +1,18 @@
+{{/* Latest release tag for a GitHub repo, e.g.
+       {{ template "github-latest-tag" "openai/codex" }}
+
+     Deliberately not chezmoi's gitHubLatestRelease: that hits api.github.com,
+     and the VMs share one NAT egress IP whose 60 req/hour anonymous budget is
+     usually already spent by someone else, so apply dies with HTTP 403 rate
+     limit exceeded. No credentials live on the VM to authenticate with.
+
+     github.com/OWNER/REPO/releases/latest redirects to the tag of whatever
+     GitHub considers the latest release — same answer, from the same host that
+     serves the release assets below, and not rate limited. Asking for the
+     redirect without following it keeps this to one header-only request. */ -}}
+{{- $url := output "curl" "-fsS" "--max-time" "20" "-o" "/dev/null" "-w" "%{redirect_url}"
+      (printf "https://github.com/%s/releases/latest" .) | trim -}}
+{{- if not (hasPrefix "https://github.com/" $url) -}}
+{{-   fail (printf "github-latest-tag: no latest release for %s (redirect: %q)" . $url) -}}
+{{- end -}}
+{{- $url | base -}}
