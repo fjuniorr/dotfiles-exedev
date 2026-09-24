@@ -33,6 +33,12 @@ published SHA-256 checksum, and upgrades it on `chezmoi apply` or
 `sudo` to install the binary at `/usr/local/libexec/gh` and a launcher at
 `/usr/local/bin/gh`, so all VM users and services can use it.
 
+On Ubuntu and Debian, `/usr/bin/gh` also points to the launcher. The
+installer uses `dpkg-divert` to preserve the distro binary at
+`/usr/bin/gh.distrib` and keep package upgrades from replacing the link.
+This matters on exe.dev, where SSH sessions put `/bin` and `/usr/bin`
+before `/usr/local/bin` in `PATH`.
+
 The launcher defaults `GH_HOST` to `github.int.exe.xyz`, as described in
 the [exe.dev GitHub integration guide](https://exe.dev/docs/integrations-github#using-the-gh-cli).
 It supplies the variable each time `gh` runs, including from noninteractive
@@ -43,10 +49,9 @@ gh pr list -R OWNER/REPO
 ```
 
 This sets the environment for `gh` and its children, not for unrelated
-programs. An explicit `GH_HOST` takes precedence. Use `/usr/local/bin/gh`
-in jobs with a restricted `PATH`; calling `/usr/bin/gh` or
-`/usr/local/libexec/gh` directly bypasses the default. In an existing Bash
-session, run `hash -r` if it still resolves `gh` to the old binary.
+programs. An explicit `GH_HOST` takes precedence. Calling
+`/usr/local/libexec/gh` or the preserved distro binary directly bypasses
+the default. The installer prints the managed version when it finishes.
 
 ## Dashlane CLI first use
 

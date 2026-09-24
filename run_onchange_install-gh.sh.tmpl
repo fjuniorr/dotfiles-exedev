@@ -49,3 +49,14 @@ export GH_HOST="${GH_HOST:-github.int.exe.xyz}"
 exec /usr/local/libexec/gh "$@"
 EOF
 sudo install -D -m 0755 "$tmp/gh" /usr/local/bin/gh
+
+# exe.dev's SSH PATH puts /bin and /usr/bin before /usr/local/bin. Register
+# the distro binary's alternate location with dpkg so package upgrades leave
+# our launcher in place. Ubuntu's /bin is a symlink to /usr/bin.
+if command -v dpkg-divert >/dev/null 2>&1; then
+  sudo dpkg-divert --local --rename --add \
+    --divert /usr/bin/gh.distrib /usr/bin/gh
+  sudo ln -sfn /usr/local/bin/gh /usr/bin/gh
+fi
+
+/usr/local/bin/gh --version
