@@ -42,8 +42,9 @@ VM — never run `gh auth login` or set up tokens.
   remotes on existing checkouts with `git remote set-url`.
 - List repos available to this VM (each `github` entry has a ready-made
   clone command): `curl -s https://reflection.int.exe.xyz/integrations`
-- `gh` needs `GH_HOST=github.int.exe.xyz` (exported in interactive shells;
-  set it if missing) and an explicit repo: `gh pr list -R OWNER/REPO`
+- `/usr/local/bin/gh` defaults to the integration host, including in
+  noninteractive shells and services. Use an explicit repo:
+  `gh pr list -R OWNER/REPO`
 - `gh` subcommands that write via GraphQL fail with `HTTP 403 (…/api/graphql)`
   even where the integration allows writes; GraphQL reads are fine. Confirmed
   for `gh issue create`; assume the same for `gh pr create` and friends. Use

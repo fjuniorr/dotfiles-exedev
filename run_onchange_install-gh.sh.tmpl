@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve the latest release at apply time so run_onchange upgrades gh when
+# a new release ships. Install system-wide so services use the same version.
+tag="{{ template "github-latest-tag" "cli/cli" }}"
+latest="${tag#v}"
+
+if [ "$(uname -s)" != Linux ]; then
+  echo "install-gh: only supported on Linux; skipping" >&2
+  exit 0
+fi
+
+case "$(uname -m)" in
+  x86_64|amd64) arch="amd64" ;;
+  aarch64|arm64) arch="arm64" ;;
+  *) echo "install-gh: unsupported arch $(uname -m)" >&2; exit 1 ;;
+esac
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+current=""
+if [ -x /usr/local/libexec/gh ]; then
+  current="$(/usr/local/libexec/gh --version | awk 'NR == 1 {print $3}')"
+fi
+
+if [ "$current" != "$latest" ]; then
+  asset="gh_${latest}_linux_${arch}.tar.gz"
+  release="https://github.com/cli/cli/releases/download/${tag}"
+  curl -fsSL --retry 3 "$release/$asset" -o "$tmp/$asset"
+  curl -fsSL --retry 3 "$release/gh_${latest}_checksums.txt" -o "$tmp/checksums"
+  checksum="$(awk -v asset="$asset" '$2 == asset {print $1}' "$tmp/checksums")"
+  if [[ ! "$checksum" =~ ^[0-9a-f]{64}$ ]]; then
+    echo "install-gh: missing or invalid checksum for $asset" >&2
+    exit 1
+  fi
+  (cd "$tmp" && printf '%s  %s\n' "$checksum" "$asset" | sha256sum --check -)
+
+  tar xzf "$tmp/$asset" -C "$tmp" "gh_${latest}_linux_${arch}/bin/gh"
+  sudo install -D -m 0755 "$tmp/gh_${latest}_linux_${arch}/bin/gh" /usr/local/libexec/gh
+fi
+
+# Set the default on every invocation, including from noninteractive shells,
+# cron, and services. It does not depend on a login or shell startup file.
+cat > "$tmp/gh" <<'EOF'
+#!/bin/sh
+export GH_HOST="${GH_HOST:-github.int.exe.xyz}"
+exec /usr/local/libexec/gh "$@"
+EOF
+sudo install -D -m 0755 "$tmp/gh" /usr/local/bin/gh

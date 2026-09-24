@@ -25,6 +25,29 @@ It prints a URL + code; approve it from a browser on any other device.
 (`--no-browser` alone is not enough — the default flow redirects to
 localhost on the VM.)
 
+## GitHub CLI
+
+Chezmoi installs the latest stable `gh` release from GitHub, verifies its
+published SHA-256 checksum, and upgrades it on `chezmoi apply` or
+`chezmoi update` when a newer release is available. This installer uses
+`sudo` to install the binary at `/usr/local/libexec/gh` and a launcher at
+`/usr/local/bin/gh`, so all VM users and services can use it.
+
+The launcher defaults `GH_HOST` to `github.int.exe.xyz`, as described in
+the [exe.dev GitHub integration guide](https://exe.dev/docs/integrations-github#using-the-gh-cli).
+It supplies the variable each time `gh` runs, including from noninteractive
+shells, cron, and services. No shell export or `gh auth login` is needed:
+
+```sh
+gh pr list -R OWNER/REPO
+```
+
+This sets the environment for `gh` and its children, not for unrelated
+programs. An explicit `GH_HOST` takes precedence. Use `/usr/local/bin/gh`
+in jobs with a restricted `PATH`; calling `/usr/bin/gh` or
+`/usr/local/libexec/gh` directly bypasses the default. In an existing Bash
+session, run `hash -r` if it still resolves `gh` to the old binary.
+
 ## Dashlane CLI first use
 
 `dcli` is installed by chezmoi, but Dashlane requires an interactive
