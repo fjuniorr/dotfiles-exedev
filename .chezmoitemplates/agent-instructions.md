@@ -8,7 +8,9 @@
 
 # Ficks
 
-- Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`.
+- Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`
+
+- Always run the test suite as `just test -n 0` on the VMs to prevent out-of-memory errors
 
 # GitHub on exe.dev VMs
 
