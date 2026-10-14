@@ -6,30 +6,9 @@
 
 - Use google developer documentation style guide (https://developers.google.com/style).
 
-# Engineering plans
+# Ficks
 
-When working on the context of an engineering plans (`/home/exedev/plans`) use two sections: **Problem** and **Solution** for the main `README.md` :
-
-- The Problem should identify who is affected, the context, and why the current situation matters, supported by concrete examples and evidence. 
-- The Solution should state the proposed direction, the value it should provide to those affected, expected outcomes, and important constraints. 
-- Make both sections understandable without reconstructing the original discussion, and distinguish observed facts from assumptions or stakeholder judgments. 
-- Leave out implementation steps, exhaustive technical details, and the history of how decisions were reached.
-- Code is the source of truth for design and implementation. Commits explain individual changes. Pull requests synthesize work for review.
-
-```text
-plans/
-└── YYYY-MM-DD-<slug>/
-    ├── README.md            # problem and solution
-    ├── .gitignore           # ignore large files and PII
-    ├── prototypes/          # UI and UX prototypes
-    ├── transcripts/         # meetings, interviews, conversations
-    ├── data/                # datasets
-    ├── reports/             # code walkthroughs, incident reports, deep dives, reference materials
-    ├── scripts/             # ad-hoc scripts
-    └── tools/               # standalone utilities
-```
-
-Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`.
+- Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`.
 
 # GitHub on exe.dev VMs
 
