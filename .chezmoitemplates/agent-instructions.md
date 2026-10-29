@@ -6,6 +6,14 @@
 
 - Use google developer documentation style guide (https://developers.google.com/style).
 
+# Personal knowledge base (Notebook)
+
+Identifiers like `20261029T083335` (`YYYYMMDDTHHMMSS`) refer to notes in my
+personal knowledge base: `~/Notebook` on the Mac mini, `~/pim` on exe.dev VMs.
+Read its `AGENTS.md` first, then open `notes/<id>.md` or
+`notes/<id>/index.md`. Resolve bare IDs and `[[<id>|<title>]]` links this way
+without asking what they refer to.
+
 # Ficks
 
 - Ensure `just serve` is running from the `plans` repo inside a tmux session named `plans`
