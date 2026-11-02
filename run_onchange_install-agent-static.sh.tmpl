@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$(uname -s)" != Linux ]; then
+  echo "install-agent-static: only supported on Linux; skipping" >&2
+  exit 0
+fi
+
+if [ ! -x /usr/bin/python3 ] || ! command -v systemctl >/dev/null ||
+    ! command -v ss >/dev/null; then
+  echo "install-agent-static: requires /usr/bin/python3, systemd, and ss" >&2
+  exit 1
+fi
+
+if ! systemctl is-active --quiet agent-static.service &&
+    [ -n "$(ss -H -ltn 'sport = :8765')" ]; then
+  echo "install-agent-static: port 8765 is occupied; leaving its server untouched" >&2
+  exit 1
+fi
+
+tmp="$(mktemp -d)"
+trap 'rm -f "$tmp/server.py" "$tmp/agent-static.service"; rmdir "$tmp"' EXIT
+
+# Embedding the sources makes run_onchange rerun when either source changes.
+cat > "$tmp/server.py" <<'PYTHON'
+{{ include ".chezmoitemplates/agent-static/server.py" }}
+PYTHON
+cat > "$tmp/agent-static.service" <<'UNIT'
+{{ template "agent-static/service" . }}
+UNIT
+
+sudo install -D -m 0644 "$tmp/server.py" /usr/local/lib/agent-static/server.py
+sudo install -m 0644 "$tmp/agent-static.service" /etc/systemd/system/agent-static.service
+sudo systemctl daemon-reload
+sudo systemctl enable agent-static.service
+sudo systemctl restart agent-static.service
+sudo systemctl is-active --quiet agent-static.service
+echo "agent-static: serving /tmp/agent-static on port 8765 (8000 stays available for Django)"

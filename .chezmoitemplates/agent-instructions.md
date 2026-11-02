@@ -45,3 +45,5 @@ VM — never run `gh auth login` or set up tokens.
   `ssh exe.dev integrations add github --name NAME --repository OWNER/REPO --attach vm:VM_NAME`
 - Pushes show as `exe-dev-github-integration[bot]` unless the integration has
   `--act-as-user`; `--readonly` integrations reject pushes and API writes.
+
+{{ template "agent-static-instructions.md" . }}
