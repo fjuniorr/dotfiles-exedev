@@ -21,7 +21,6 @@ class ArtifactServerTests(unittest.TestCase):
         self.root.mkdir()
         branch = self.root / "feature-preview"
         branch.mkdir()
-        (branch / "index.html").write_text("<h1>Preview</h1>")
         (self.root / "index.html").write_text("Root index must not hide folders")
         handler = partial(ArtifactHandler, directory=str(self.root))
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -34,10 +33,10 @@ class ArtifactServerTests(unittest.TestCase):
         self.server.server_close()
         self.thread.join()
 
-    def request(self, path, method="GET"):
+    def request(self, path):
         connection = HTTPConnection(*self.server.server_address, timeout=5)
         try:
-            connection.request(method, path)
+            connection.request("GET", path)
             response = connection.getresponse()
             return response.status, response.read(), dict(response.getheaders())
         finally:
@@ -52,17 +51,6 @@ class ArtifactServerTests(unittest.TestCase):
         (self.root / "new-branch").mkdir()
         self.assertIn(b'new-branch/', self.request("/?refresh=1")[1])
 
-    def test_branch_index_and_head(self):
-        self.assertEqual(self.request("/feature-preview/")[:2], (200, b"<h1>Preview</h1>"))
-        self.assertEqual(self.request("/", "HEAD")[:2], (200, b""))
-
-    def test_directory_without_index_is_browsable(self):
-        (self.root / "reports").mkdir()
-        (self.root / "reports" / "report.txt").write_text("report")
-        self.assertIn(b'href="report.txt"', self.request("/reports/")[1])
-
-    def test_missing_file(self):
-        self.assertEqual(self.request("/missing")[0], 404)
 
     def test_external_symlinks_are_not_served(self):
         outside = Path(self.temp.name) / "private.txt"

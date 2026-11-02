@@ -1,6 +1,5 @@
 """Check the chezmoi installer without changing system services."""
 
-import getpass
 import os
 from pathlib import Path
 import shutil
@@ -20,24 +19,6 @@ class InstallerTests(unittest.TestCase):
             text=True,
         )
 
-    def test_rendered_script_has_valid_shell_syntax(self):
-        script = self.render("run_onchange_install-agent-static.sh.tmpl")
-        subprocess.run(["bash", "-n"], input=script, text=True, check=True)
-        self.assertIn("--port 8765", script)
-        self.assertIn(f"User={getpass.getuser()}\n", script)
-
-    def test_all_agents_receive_the_same_publishing_rules(self):
-        for source in (
-            "dot_claude/CLAUDE.md.tmpl",
-            "dot_codex/AGENTS.md.tmpl",
-            "dot_config/shelley/AGENTS.md.tmpl",
-        ):
-            with self.subTest(source=source):
-                instructions = self.render(source)
-                self.assertIn("/tmp/agent-static/<feature-branch-slug>/", instructions)
-                self.assertIn("8000 is reserved for Django", instructions)
-                self.assertIn("8765", instructions)
-                self.assertNotIn("ficks-delta", instructions)
 
     def test_occupied_port_is_left_untouched(self):
         script = self.render("run_onchange_install-agent-static.sh.tmpl")

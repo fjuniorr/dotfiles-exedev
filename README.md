@@ -55,6 +55,24 @@ the default. The installer prints the managed version when it finishes.
 
 ## Shared static artifacts
 
+Use file-based publishing instead of Claude Artifacts, chat-embedded
+HTML/iframe previews, or similar artifact/canvas tools. These deliverables
+turn generated output into something the user can view, interact with, or
+download: reports, visualizations, diagrams, UI mockups, and small demos.
+Ordinary files and direct browser URLs keep that output editable and usable
+outside the originating chat.
+
+**If the work has a corresponding engineering plan, use its existing
+folder first.** For Ficks, follow `ficks/AGENTS.md` and
+`ficks/docs/working-with-claude.md`. The sibling plans repo stores each plan
+at `plans/YYYY-MM-DD-<slug>/README.md`. Put related artifacts alongside that
+file or in an appendix subfolder, link them from the plan, and serve them
+through the existing plans viewer (`just serve` in the `plans` tmux session).
+Follow that repo's privacy, metadata, and commit/publish conventions.
+Do not create a plan merely to host an artifact or substitute a same-named
+temporary folder for an existing plan.
+
+**Without a corresponding plan, use the shared temporary server.**
 On Linux, chezmoi installs and enables `agent-static.service`, a Python
 static server on **port 8765**. It starts at boot and restarts after failure.
 The installer requires Python 3, systemd, `ss`, and sudo access. It refuses
@@ -75,8 +93,8 @@ access; this server does not add its own authentication.
 
 The same publishing instructions are installed for Claude Code, Codex,
 and Shelley. Publish only intended artifacts, never secrets or private
-source trees. All previews share an origin, so this is not a sandbox for
-untrusted HTML/JavaScript. Files are temporary and may disappear on reboot
+source trees. Previews on each server share an origin, so this is not a sandbox for
+untrusted HTML/JavaScript. Files under `/tmp` may disappear on reboot
 or through OS cleanup; no custom retention/deletion job is installed.
 
 ```sh
