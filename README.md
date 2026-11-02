@@ -104,11 +104,7 @@ journalctl -u agent-static.service
 
 Server and unit sources live in `.chezmoitemplates/agent-static/`.
 Changes rerun the installer on the next `chezmoi apply`; the installed
-server is `/usr/local/lib/agent-static/server.py`. Test from this checkout:
-
-```sh
-python3 -m unittest discover -s tests -v
-```
+server is `/usr/local/lib/agent-static/server.py`.
 
 ## Dashlane CLI first use
 
