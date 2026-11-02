@@ -53,6 +53,22 @@ programs. An explicit `GH_HOST` takes precedence. Calling
 `/usr/local/libexec/gh` or the preserved distro binary directly bypasses
 the default. The installer prints the managed version when it finishes.
 
+## Codex plugin for Claude Code
+
+Chezmoi installs [openai/codex-plugin-cc](https://github.com/openai/codex-plugin-cc)
+into Claude Code, which adds `/codex:review`, `/codex:rescue` and the
+`codex:codex-rescue` subagent. It upgrades the plugin on `chezmoi apply`
+or `chezmoi update` when OpenAI publishes a new release. The plugin uses
+the `codex` CLI that chezmoi also installs, which must be logged in once
+on each VM:
+
+```sh
+codex login --device-auth
+```
+
+Inside Claude Code, `/codex:setup` checks that Codex is installed and
+logged in.
+
 ## Dashlane CLI first use
 
 `dcli` is installed by chezmoi, but Dashlane requires an interactive

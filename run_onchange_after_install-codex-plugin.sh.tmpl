@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# openai/codex-plugin-cc gives Claude Code /codex:review, /codex:rescue and the
+# codex:codex-rescue subagent, driving the codex CLI installed alongside it.
+# dot_claude/settings.json declares the marketplace and enables the plugin, but
+# that alone installs nothing — `claude plugin install` does, and it needs the
+# marketplace cloned first. It's declared by HTTPS URL rather than as a
+# github repo, which claude clones over SSH first — the VMs have no SSH keys.
+#
+# The tag below makes this re-run when OpenAI cuts a release: third-party
+# marketplaces don't auto-update, so the refresh happens here instead.
+# Latest release: {{ template "github-latest-tag" "openai/codex-plugin-cc" }}
+#
+# `after_` so it runs once install-claude.sh has put claude in place and
+# settings.json is on disk; claude rewrites that file when it installs, and
+# keeping the repo copy in claude's own key order makes the rewrite a no-op.
+
+export PATH="$HOME/.local/bin:$PATH"
+if ! command -v claude >/dev/null 2>&1; then
+  echo "install-codex-plugin: claude not found; skipping" >&2
+  exit 0
+fi
+
+claude plugin marketplace add https://github.com/openai/codex-plugin-cc.git
+claude plugin marketplace update openai-codex
+claude plugin install codex@openai-codex
+claude plugin update codex@openai-codex
