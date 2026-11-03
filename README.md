@@ -100,11 +100,30 @@ Use `/reload-plugins` in Claude Code or start a new session after installation;
 start a new Codex session to load its plugins. For a harmless invocation test,
 ask `/pstack:in-your-own-words` to restate a task.
 
-**Shelley does not discover these plugins.** Tested with Shelley
-`0.1583.952242170`: `shelley skill ls` retains its existing skills, and
-`shelley skill cat pstack:in-your-own-words` reports “not found.” No Shelley
-adapter is installed. An agent can still read an upstream `SKILL.md` by an
-explicit path, but that is not automatic discovery or native namespacing.
+**Shelley gets the same 92 skills through its supported system-prompt hook.**
+Ask **"Use pstack:in-your-own-words to restate this task"** in chat.
+The hook advertises plugin-qualified names, descriptions, source locations,
+and activation commands in main conversations and subagents. Explicit-only
+skills are marked as such; their bodies enter model context only when invoked.
+
+```sh
+plugin-skills ls
+plugin-skills cat pstack:in-your-own-words
+```
+
+This is a discovery bridge, not a custom Shelley build or generated wrapper
+skills. `cat` returns the original `SKILL.md` bytes from the installed plugin.
+Relative resources remain beside that file. Plugin-specific agents and tools
+are not registered in Shelley. Its native `shelley skill ls` and `skill cat`
+commands still cover only Shelley's own registry; use `plugin-skills` for
+these additional skills.
+
+The native installer refreshes `~/.cache/shelley/plugin-skills.json` using
+Codex's local metadata API, without running a model turn. The hook reads only
+that cache, not Codex or the network, and preserves the existing system prompt
+if the cache is missing or corrupt. After manually updating or disabling a
+plugin in Codex, run `plugin-skills refresh`. The bridge selects only the nine
+configured plugins; it does not expose unrelated plugins or project skills.
 
 Pins and plugin selections live in `.chezmoidata/agent-plugins.json`.
 Chezmoi extracts complete repositories to
@@ -124,10 +143,12 @@ To test only this installation from the chezmoi source directory:
 ```sh
 python3 -m unittest discover -s tests -v
 chezmoi apply --exclude scripts ~/.local/share/agent-plugin-sources
+chezmoi apply --exclude scripts ~/.local/bin/plugin-skills ~/.config/shelley/plugin-sources.json ~/.config/shelley/hooks
 chezmoi execute-template -f run_onchange_after_install-agent-plugins.sh.tmpl | bash
 claude plugin list --json
 codex plugin list --json
 shelley skill ls
+plugin-skills ls
 ```
 
 ## Shared static artifacts

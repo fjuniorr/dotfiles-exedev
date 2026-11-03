@@ -31,6 +31,7 @@ class AgentPluginTests(unittest.TestCase):
         cls.claude = json.loads(render("dot_claude/settings.json.tmpl"))
         cls.codex = tomllib.loads(render("dot_codex/config.toml.tmpl"))
         cls.externals = tomllib.loads(render(".chezmoiexternal.toml"))
+        cls.shelley = json.loads(render("dot_config/shelley/plugin-sources.json.tmpl"))
         cls.script = render("run_onchange_after_install-agent-plugins.sh.tmpl")
 
     def run_installer(self, fail_on=""):
@@ -39,7 +40,7 @@ class AgentPluginTests(unittest.TestCase):
             home = Path(directory)
             binaries = home / ".local/bin"
             binaries.mkdir(parents=True)
-            for name in ("claude", "codex"):
+            for name in ("claude", "codex", "plugin-skills"):
                 executable = binaries / name
                 executable.write_text(
                     "#!/usr/bin/env python3\n"
@@ -94,6 +95,7 @@ class AgentPluginTests(unittest.TestCase):
                 self.assertTrue(self.codex["plugins"][identifier]["enabled"])
         self.assertEqual(len(identifiers), 9)
         self.assertEqual(len(set(identifiers)), 9)
+        self.assertEqual(set(self.shelley["plugins"]), set(identifiers))
         self.assertTrue(self.claude["enabledPlugins"]["codex@openai-codex"])
 
     def test_installer_uses_native_commands_for_every_plugin(self):
@@ -118,6 +120,7 @@ class AgentPluginTests(unittest.TestCase):
                     ["claude", "plugin", "update", identifier, "--scope", "user"],
                     ["codex", "plugin", "add", identifier],
                 ])
+        expected.append(["plugin-skills", "refresh"])
         self.assertEqual(commands, expected)
         self.assertNotIn("SKILL.md", self.script)
         self.assertNotIn(".agents/skills", self.script)
