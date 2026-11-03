@@ -46,4 +46,4 @@ VM — never run `gh auth login` or set up tokens.
 - Pushes show as `exe-dev-github-integration[bot]` unless the integration has
   `--act-as-user`; `--readonly` integrations reject pushes and API writes.
 
-{{ template "agent-static-instructions.md" . }}
+{{ template "artifacts-instructions.md" . }}

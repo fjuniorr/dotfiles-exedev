@@ -18,7 +18,7 @@ keep independently of the conversation or agent.
   same-named folder under `/tmp`. Follow the plan repo's privacy, metadata,
   and commit/publish conventions; do not create a plan just to host an artifact.
 - **No corresponding plan:** publish under
-  `/tmp/agent-static/<feature-branch-slug>/`.
+  `/tmp/artifacts/<feature-branch-slug>/`.
   Derive the slug from the current working repository's feature branch:
   lowercase it, replace runs of non-alphanumeric characters (including `/`)
   with `-`, and trim leading/trailing hyphens.
@@ -26,7 +26,7 @@ keep independently of the conversation or agent.
   artifacts. On main/master, detached HEAD, or outside Git, choose a
   descriptive feature slug. Avoid overwriting another feature if slugs collide.
 
-The temporary fallback is served by `agent-static.service` on port **8765**;
+The temporary fallback is served by `artifacts.service` on port **8765**;
 do not start per-task servers. **Port 8000 is reserved for Django**; never
 stop or replace it to serve artifacts.
 
@@ -40,5 +40,5 @@ stop or replace it to serve artifacts.
 - Files under `/tmp` may disappear on reboot or OS temporary-file cleanup. Do not add
   automatic deletion without an agreed retention policy.
 
-Check the service with `systemctl status agent-static.service`; logs are
-available with `journalctl -u agent-static.service`.
+Check the service with `systemctl status artifacts.service`; logs are
+available with `journalctl -u artifacts.service`.

@@ -34,7 +34,7 @@ class ArtifactHandler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--directory", default="/tmp/agent-static")
+    parser.add_argument("--directory", default="/tmp/artifacts")
     args = parser.parse_args()
     handler = partial(ArtifactHandler, directory=str(Path(args.directory).resolve()))
     with ThreadingHTTPServer(("0.0.0.0", args.port), handler) as server:

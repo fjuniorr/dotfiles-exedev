@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User={{ .chezmoi.username }}
-ExecStartPre=/usr/bin/mkdir -p /tmp/agent-static
-ExecStart=/usr/bin/python3 -B /usr/local/lib/agent-static/server.py --port 8765 --directory /tmp/agent-static
+ExecStartPre=/usr/bin/mkdir -p /tmp/artifacts
+ExecStart=/usr/bin/python3 -B /usr/local/lib/artifacts/server.py --port 8765 --directory /tmp/artifacts
 Restart=always
 RestartSec=2
 UMask=0022

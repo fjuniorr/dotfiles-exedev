@@ -73,13 +73,13 @@ Do not create a plan merely to host an artifact or substitute a same-named
 temporary folder for an existing plan.
 
 **Without a corresponding plan, use the shared temporary server.**
-On Linux, chezmoi installs and enables `agent-static.service`, a Python
+On Linux, chezmoi installs and enables `artifacts.service`, a Python
 static server on **port 8765**. It starts at boot and restarts after failure.
 The installer requires Python 3, systemd, `ss`, and sudo access. It refuses
 to take over an occupied port and leaves **8000 available for Django**.
 
 Publish previews, reports, and downloads under
-`/tmp/agent-static/<feature-branch-slug>/`. Usually the slug comes from
+`/tmp/artifacts/<feature-branch-slug>/`. Usually the slug comes from
 the current feature branch: lowercase the name, replace runs of punctuation
 with `-`, and trim leading/trailing hyphens. For example,
 `feature/order-preview` becomes `feature-order-preview`. Reuse the folder
@@ -98,13 +98,13 @@ untrusted HTML/JavaScript. Files under `/tmp` may disappear on reboot
 or through OS cleanup; no custom retention/deletion job is installed.
 
 ```sh
-systemctl status agent-static.service
-journalctl -u agent-static.service
+systemctl status artifacts.service
+journalctl -u artifacts.service
 ```
 
-Server and unit sources live in `.chezmoitemplates/agent-static/`.
+Server and unit sources live in `.chezmoitemplates/artifacts/`.
 Changes rerun the installer on the next `chezmoi apply`; the installed
-server is `/usr/local/lib/agent-static/server.py`.
+server is `/usr/local/lib/artifacts/server.py`.
 
 ## Dashlane CLI first use
 
