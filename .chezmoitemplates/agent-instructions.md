@@ -20,6 +20,8 @@ without asking what they refer to.
 
 - Always run the test suite as `just test -n 0` on the VMs to prevent out-of-memory errors
 
+{{ template "aws-sso-instructions.md" . }}
+
 # GitHub on exe.dev VMs
 
 GitHub access goes through the exe.dev GitHub integration
