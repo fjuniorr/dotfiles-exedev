@@ -14,3 +14,13 @@ base_url = "https://codex.int.exe.xyz/v1"
 # Claude's session cost.
 [tui]
 status_line = ["project-name", "git-branch", "model-with-reasoning", "context-used", "five-hour-limit", "weekly-limit"]
+
+{{ range .agentPlugins }}
+[marketplaces.{{ .marketplace | quote }}]
+source_type = "local"
+source = {{ printf "%s/.local/share/agent-plugin-sources/%s" $.chezmoi.homeDir .directory | quote }}
+{{ end }}
+{{ range .agentPlugins }}{{ $marketplace := .marketplace }}{{ range .plugins }}
+[plugins.{{ printf "%s@%s" . $marketplace | quote }}]
+enabled = true
+{{ end }}{{ end }}

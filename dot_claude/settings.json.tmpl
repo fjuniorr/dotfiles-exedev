@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "deny": [
+      "AskUserQuestion"
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y ccstatusline@latest",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": true{{ range .agentPlugins }}{{ $marketplace := .marketplace }}{{ range .plugins }},
+    {{ printf "%s@%s" . $marketplace | toJson }}: true{{ end }}{{ end }}
+  },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/openai/codex-plugin-cc.git"
+      }
+    }{{ range .agentPlugins }},
+    {{ .marketplace | toJson }}: {
+      "source": {
+        "source": "directory",
+        "path": {{ printf "%s/.local/share/agent-plugin-sources/%s" $.chezmoi.homeDir .directory | toJson }}
+      }
+    }{{ end }}
+  },
+  "skipDangerousModePermissionPrompt": true
+}

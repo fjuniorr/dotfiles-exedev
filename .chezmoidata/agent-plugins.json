@@ -1,0 +1,33 @@
+{
+  "agentPlugins": [
+    {
+      "directory": "mattpocock",
+      "repository": "mattpocock/skills",
+      "revision": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+      "marketplace": "mattpocock",
+      "plugins": ["mattpocock-skills"]
+    },
+    {
+      "directory": "humanlayer",
+      "repository": "humanlayer/skills",
+      "revision": "4d69d20f6e9b57b4fcf0d501ccfb1be961f0f329",
+      "marketplace": "skills",
+      "plugins": [
+        "rpi",
+        "improve-claude-md",
+        "narrow-react-prop-types",
+        "build-iterated-agentic-loop",
+        "design-control-loop",
+        "show-me",
+        "visual-pr"
+      ]
+    },
+    {
+      "directory": "pstack",
+      "repository": "cursor/plugins",
+      "revision": "ae5650febf4320793844c12c4adaa937f417f8da",
+      "marketplace": "cursor-plugins",
+      "plugins": ["pstack"]
+    }
+  ]
+}

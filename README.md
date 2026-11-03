@@ -69,57 +69,64 @@ codex login --device-auth
 Inside Claude Code, `/codex:setup` checks that Codex is installed and
 logged in.
 
-## Shared agent skills
+## Native agent plugins
 
-Chezmoi installs all `SKILL.md` files from these pinned collections:
+Chezmoi installs the upstream plugins into **Claude Code and Codex**, using
+their native marketplace commands. The hosts supply namespaces; this setup
+does not rename skills, rewrite `SKILL.md`, or generate wrapper instructions.
 
-| Source | Installed names | Skills |
+| Source | Plugin IDs | Exported skills |
 | --- | --- | --- |
-| `mattpocock/skills` | `mattpocock-*` | 39, including `in-progress` |
-| `humanlayer/skills` | `humanlayer-*` | 7 |
-| `cursor/plugins`, only `pstack/` | `pstack-*` | 61, including Benny's 3 automation skills |
+| `mattpocock/skills` | `mattpocock-skills@mattpocock` | 27 |
+| `humanlayer/skills` | Seven plugins under the `skills` marketplace | 7 |
+| `cursor/plugins` | Only `pstack@cursor-plugins` | 58 |
 
-Each skill has a small entry point in `~/.agents/skills/`, shared by
-Shelley and Codex. Claude Code gets symlinks in `~/.claude/skills/`.
-Names are prefixed because both Matt and pstack provide `tdd` and `teach`;
-neither version should silently replace the other.
+Both hosts load **92 skills** from these nine plugins. The manifests exclude
+12 of Matt's experimental/miscellaneous skills and pstack's three Benny
+automation skills. Those files remain in the source snapshots but are not
+exported as commands. HumanLayer's plugins are `rpi`, `improve-claude-md`,
+`narrow-react-prop-types`, `build-iterated-agentic-loop`, `design-control-loop`,
+`show-me`, and `visual-pr`.
 
-In Shelley, ask **"Use pstack-in-your-own-words"** or inspect the installation:
+The plugin manifest's name provides the namespace, not its marketplace:
 
-```sh
-shelley skill ls
-shelley skill cat humanlayer-rpi
-```
+| Claude Code | Codex |
+| --- | --- |
+| `/mattpocock-skills:tdd` | `$mattpocock-skills:tdd` |
+| `/pstack:tdd` | `$pstack:tdd` |
+| `/rpi:rpi` | `$rpi:rpi` |
 
-In Claude Code, use `/humanlayer-rpi`; in Codex, use `$humanlayer-rpi`.
-Restart an agent session if its skill list hasn't refreshed.
+Use `/reload-plugins` in Claude Code or start a new session after installation;
+start a new Codex session to load its plugins. For a harmless invocation test,
+ask `/pstack:in-your-own-words` to restate a task.
 
-Entry points direct the agent to the original skill under
-`~/.local/share/agent-skill-sources/<collection>/`. Complete source trees
-are retained there for references, templates, scripts, and attribution.
-The upstream files are not rewritten. Skills marked explicit-invocation-only
-retain that flag and say so in their descriptions because Shelley currently
-ignores the flag.
+**Shelley does not discover these plugins.** Tested with Shelley
+`0.1583.952242170`: `shelley skill ls` retains its existing skills, and
+`shelley skill cat pstack:in-your-own-words` reports “not found.” No Shelley
+adapter is installed. An agent can still read an upstream `SKILL.md` by an
+explicit path, but that is not automatic discovery or native namespacing.
 
-This installs skill documents, **not the full plugins**: no hooks, plugin
-agents, MCP servers, or Cursor services are registered. Some pstack workflows,
-especially Benny, need Cursor features or additional setup. Their documents
-are available, but installing them does not start automations or grant
-permission to publish, deploy, or change external services.
+Pins and plugin selections live in `.chezmoidata/agent-plugins.json`.
+Chezmoi extracts complete repositories to
+`~/.local/share/agent-plugin-sources/<collection>/` and registers them as local
+marketplaces. For pstack, the upstream marketplace selects
+`harness/pstack/claude-code/`, its Claude-compatible distribution, for both
+hosts. No other Cursor plugin is installed.
 
-Revisions live in `.chezmoidata/agent-skills.json`. Updates are deliberate:
-change a revision, run the tests below, then apply and inspect the skill list.
-Ordinary `chezmoi update` uses the committed revisions, not upstream `main`.
-The installer runs after archive extraction on every apply, leaves unrelated
-skills alone, and refuses to overwrite conflicting entries. Removed upstream
-skills lose only their generated entry points and Claude aliases.
+Change a pin to update a collection. The installer reruns when its rendered
+content changes, including a revision change, after chezmoi extracts the
+archives. It refreshes native installations; the managed Claude/Codex settings
+keep the marketplaces registered and the plugins enabled on later applies.
+Ordinary `chezmoi update` uses these pins, not upstream `main`.
 
-To test just this installation without running other dotfiles installers:
+To test only this installation from the chezmoi source directory:
 
 ```sh
 python3 -m unittest discover -s tests -v
-chezmoi apply --exclude scripts ~/.local/share/agent-skill-sources
-chezmoi execute-template -f run_after_install-agent-skills.sh.tmpl | bash
+chezmoi apply --exclude scripts ~/.local/share/agent-plugin-sources
+chezmoi execute-template -f run_onchange_after_install-agent-plugins.sh.tmpl | bash
+claude plugin list --json
+codex plugin list --json
 shelley skill ls
 ```
 

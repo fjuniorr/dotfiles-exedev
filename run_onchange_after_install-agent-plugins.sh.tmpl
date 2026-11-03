@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
+
+command -v claude >/dev/null
+command -v codex >/dev/null
+
+{{ range .agentPlugins }}
+# {{ .repository }}@{{ .revision }}
+source_dir={{ printf "%s/.local/share/agent-plugin-sources/%s" $.chezmoi.homeDir .directory | quote }}
+claude plugin marketplace add "$source_dir"
+claude plugin marketplace update {{ .marketplace | quote }}
+codex plugin marketplace add "$source_dir"
+{{ $marketplace := .marketplace }}
+{{ range .plugins }}
+claude plugin install {{ printf "%s@%s" . $marketplace | quote }} --scope user
+claude plugin update {{ printf "%s@%s" . $marketplace | quote }} --scope user
+codex plugin add {{ printf "%s@%s" . $marketplace | quote }}
+{{ end }}
+{{ end }}

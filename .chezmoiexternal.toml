@@ -14,16 +14,11 @@
     stripComponents = 1
     refreshPeriod = "168h"
 
-# Shared collections are pinned; keep source trees for relative references and scripts.
-{{ range .agentSkills }}
-[".local/share/agent-skill-sources/{{ .namespace }}"]
+# Native marketplaces use their upstream manifests and complete, pinned source trees.
+{{ range .agentPlugins }}
+[".local/share/agent-plugin-sources/{{ .directory }}"]
     type = "archive"
     url = "https://github.com/{{ .repository }}/archive/{{ .revision }}.tar.gz"
     exact = true
-{{ if .subtree }}
-    stripComponents = 2
-    include = ["*/{{ .subtree }}/**"]
-{{ else }}
     stripComponents = 1
-{{ end }}
 {{ end }}
