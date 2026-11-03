@@ -120,13 +120,54 @@ def load_catalog(home: Path) -> list[dict]:
     return [entry for entry in data["skills"] if Path(entry["path"]).is_file()]
 
 
-def prompt_section(entries: list[dict], home: Path) -> str:
-    """Advertise qualified names with direct reads and explicit-invocation restrictions."""
+def prompt_catalog_span(prompt: str) -> tuple[int, int]:
+    """Locate Shelley's final unfenced skills catalog outside root guidance."""
+    lines = prompt.splitlines(keepends=True)
+    guidance_start = next((i for i, line in enumerate(lines) if line.strip() == "<guidance>"), None)
+    guidance_end = max((i for i, line in enumerate(lines) if line.strip() == "</guidance>"), default=-1)
+    if guidance_start is not None and guidance_end < guidance_start:
+        raise ValueError("Unterminated Shelley guidance")
+    start = end = None
+    fence = ""
+    offset = 0
+    for i, raw in enumerate(lines):
+        position, offset = offset, offset + len(raw)
+        if guidance_start is not None and guidance_start <= i <= guidance_end:
+            continue
+        line = raw.strip()
+        marker = re.match(r"(`{3,}|~{3,})", line)
+        if marker:
+            if not fence:
+                fence = marker[0]
+            elif marker[0][0] == fence[0] and len(marker[0]) >= len(fence) and not line[len(marker[0]):].strip():
+                fence = ""
+            continue
+        if fence:
+            continue
+        if line == "<skills>":
+            start, end = offset, None
+        elif line == "</skills>" and start is not None and end is None:
+            end = position
+    if start is None or end is None:
+        raise ValueError("Missing Shelley skills envelope")
+    catalog = re.search(r"(?ms)^<available_skills>\n.*?^</available_skills>", prompt[start:end])
+    if catalog is None:
+        raise ValueError("Missing Shelley available_skills catalog")
+    return start + catalog.start(), start + catalog.end()
+
+
+def merge_prompt_catalog(prompt: str, entries: list[dict], home: Path) -> str:
+    """Add qualified plugin entries to the catalog consumed by both model and picker."""
     if not entries:
-        return ""
-    root = ET.Element("plugin_skills")
+        return prompt
+    start, end = prompt_catalog_span(prompt)
+    root = ET.fromstring(prompt[start:end])
+    names = {skill.findtext("name") for skill in root}
     executable = str(home / ".local/bin/plugin-skills")
     for entry in entries:
+        if entry["name"] in names:
+            raise ValueError(f"Duplicate prompt skill: {entry['name']}")
+        names.add(entry["name"])
         skill = ET.SubElement(root, "skill")
         for key in ("name", "description"):
             ET.SubElement(skill, key).text = entry[key]
@@ -134,7 +175,7 @@ def prompt_section(entries: list[dict], home: Path) -> str:
         ET.SubElement(skill, "location").text = entry["path"]
         ET.SubElement(skill, "activate").text = shlex.join([executable, "cat", entry["name"]])
     ET.indent(root)
-    return (
+    instructions = (
         "\n\n# Installed plugin skills\n\n"
         "These skills are available in addition to Shelley's built-in skill list. "
         "Use the activation command to read a skill before following it. "
@@ -143,21 +184,20 @@ def prompt_section(entries: list[dict], home: Path) -> str:
         "Resolve relative resources from the skill's location, not the working directory. "
         "Other skills in the same plugin retain the same plugin:skill namespace. "
         "Plugin-specific agents and tools are not registered in Shelley; "
-        "report unsupported steps rather than claiming they ran.\n\n"
-        + ET.tostring(root, encoding="unicode") + "\n"
+        "report unsupported steps rather than claiming they ran.\n"
     )
+    return prompt[:start] + ET.tostring(root, encoding="unicode") + instructions + prompt[end:]
 
 
 def transform_prompt(prompt: str, home: Path) -> str:
     """Keep Shelley usable if its optional plugin catalog is absent or broken."""
     try:
-        section = prompt_section(load_catalog(home), home)
+        return merge_prompt_catalog(prompt, load_catalog(home), home)
     except FileNotFoundError:
-        section = ""
+        pass
     except Exception as error:
         print(f"plugin-skills: catalog unavailable: {error}", file=sys.stderr)
-        section = ""
-    return prompt + section
+    return prompt
 
 
 def main() -> None:
@@ -168,7 +208,7 @@ def main() -> None:
     read = subcommands.add_parser("cat", help="print the original SKILL.md unchanged")
     read.add_argument("name")
     subcommands.add_parser("refresh", help="refresh metadata from local Codex discovery")
-    subcommands.add_parser("prompt", help="append skill metadata to a Shelley system prompt")
+    subcommands.add_parser("prompt", help="merge plugin metadata into Shelley's skill catalog")
     args = parser.parse_args()
     home = Path.home()
     if args.command == "prompt":

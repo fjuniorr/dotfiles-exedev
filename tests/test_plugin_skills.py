@@ -5,6 +5,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -21,6 +22,16 @@ SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
 bridge = importlib.util.module_from_spec(SPEC)
 with patch.object(sys, "dont_write_bytecode", True):
     LOADER.exec_module(bridge)
+
+NATIVE_PROMPT = """System instructions.
+<skills>
+Read a skill before following it.
+<available_skills>
+<skill><name>existing</name><description>Original.</description><activate>shelley skill cat existing</activate></skill>
+</available_skills>
+</skills>
+Trailing instructions.
+"""
 
 
 class PluginSkillTests(unittest.TestCase):
@@ -98,11 +109,15 @@ class PluginSkillTests(unittest.TestCase):
     def test_prompt_keeps_existing_instructions_and_escapes_metadata(self):
         """Existing system instructions survive alongside safely encoded plugin metadata."""
         self.cache_skills()
-        original = "System instructions.\n<available_skills>existing</available_skills>\n"
+        original = NATIVE_PROMPT
         prompt = bridge.transform_prompt(original, self.home)
-        self.assertTrue(prompt.startswith(original))
-        root = ET.fromstring(prompt[prompt.index("<plugin_skills>"):])
-        self.assertEqual(len(root), 2)
+        self.assertTrue(prompt.startswith("System instructions.\n<skills>\n"))
+        self.assertTrue(prompt.endswith("</skills>\nTrailing instructions.\n"))
+        catalog = re.search(r"<available_skills>.*?</available_skills>", prompt, re.S)
+        root = ET.fromstring(catalog.group())
+        self.assertEqual([s.findtext("name") for s in root], ["existing", "alpha:tdd", "beta:tdd"])
+        self.assertEqual(root[0].findtext("activate"), "shelley skill cat existing")
+        root.remove(root[0])
         self.assertEqual(root[0].findtext("description"), self.skills[0]["description"])
         self.assertEqual(root[1].findtext("invocation"), "explicit")
         self.assertEqual(
@@ -110,6 +125,26 @@ class PluginSkillTests(unittest.TestCase):
             [str(self.home / ".local/bin/plugin-skills"), "cat", "alpha:tdd"],
         )
         self.assertEqual(root[0].findtext("location"), self.skills[0]["path"])
+        self.assertNotIn("<plugin_skills>", prompt)
+
+    def test_prompt_does_not_modify_guidance_or_fenced_catalog_examples(self):
+        """Only the real catalog is changed, not examples in prose."""
+        self.cache_skills()
+        guidance = "<guidance>\n" + NATIVE_PROMPT + "</guidance>\n"
+        example = "````xml\n" + NATIVE_PROMPT + "````\n"
+        prompt = bridge.transform_prompt(guidance + NATIVE_PROMPT + example, self.home)
+        self.assertTrue(prompt.startswith(guidance))
+        self.assertTrue(prompt.endswith(example))
+        middle = prompt[len(guidance):-len(example)]
+        catalog = ET.fromstring(re.search(r"<available_skills>.*?</available_skills>", middle, re.S).group())
+        self.assertEqual(len(catalog), 3)
+
+    def test_unrecognized_prompt_is_left_unchanged(self):
+        """A changed Shelley envelope cannot produce a misleading parallel catalog."""
+        self.cache_skills()
+        for prompt in ("No catalog.", "<skills>\nUnclosed", "<skills>\nNo catalog.\n</skills>"):
+            with self.subTest(prompt=prompt), patch("sys.stderr", new_callable=io.StringIO):
+                self.assertEqual(bridge.transform_prompt(prompt, self.home), prompt)
 
     def test_missing_or_corrupt_catalog_cannot_break_shelley(self):
         """An unavailable optional index returns the original system prompt unchanged."""

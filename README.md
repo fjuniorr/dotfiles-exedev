@@ -106,6 +106,14 @@ The hook advertises plugin-qualified names, descriptions, source locations,
 and activation commands in main conversations and subagents. Explicit-only
 skills are marked as such; their bodies enter model context only when invoked.
 
+The hook merges entries into Shelley's `<skills>/<available_skills>` catalog,
+so the web `/skills` picker and system-prompt panel show the plugins too.
+Shelley snapshots that catalog when a conversation starts. Existing chats
+need a context compaction to refresh it; reloading the page alone is not enough.
+An unsent draft still uses native filesystem discovery, so plugin entries
+appear only after its first message. For that first message, request the skill
+by name in plain text.
+
 ```sh
 plugin-skills ls
 plugin-skills cat pstack:in-your-own-words
