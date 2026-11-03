@@ -69,6 +69,60 @@ codex login --device-auth
 Inside Claude Code, `/codex:setup` checks that Codex is installed and
 logged in.
 
+## Shared agent skills
+
+Chezmoi installs all `SKILL.md` files from these pinned collections:
+
+| Source | Installed names | Skills |
+| --- | --- | --- |
+| `mattpocock/skills` | `mattpocock-*` | 39, including `in-progress` |
+| `humanlayer/skills` | `humanlayer-*` | 7 |
+| `cursor/plugins`, only `pstack/` | `pstack-*` | 61, including Benny's 3 automation skills |
+
+Each skill has a small entry point in `~/.agents/skills/`, shared by
+Shelley and Codex. Claude Code gets symlinks in `~/.claude/skills/`.
+Names are prefixed because both Matt and pstack provide `tdd` and `teach`;
+neither version should silently replace the other.
+
+In Shelley, ask **"Use pstack-in-your-own-words"** or inspect the installation:
+
+```sh
+shelley skill ls
+shelley skill cat humanlayer-rpi
+```
+
+In Claude Code, use `/humanlayer-rpi`; in Codex, use `$humanlayer-rpi`.
+Restart an agent session if its skill list hasn't refreshed.
+
+Entry points direct the agent to the original skill under
+`~/.local/share/agent-skill-sources/<collection>/`. Complete source trees
+are retained there for references, templates, scripts, and attribution.
+The upstream files are not rewritten. Skills marked explicit-invocation-only
+retain that flag and say so in their descriptions because Shelley currently
+ignores the flag.
+
+This installs skill documents, **not the full plugins**: no hooks, plugin
+agents, MCP servers, or Cursor services are registered. Some pstack workflows,
+especially Benny, need Cursor features or additional setup. Their documents
+are available, but installing them does not start automations or grant
+permission to publish, deploy, or change external services.
+
+Revisions live in `.chezmoidata/agent-skills.json`. Updates are deliberate:
+change a revision, run the tests below, then apply and inspect the skill list.
+Ordinary `chezmoi update` uses the committed revisions, not upstream `main`.
+The installer runs after archive extraction on every apply, leaves unrelated
+skills alone, and refuses to overwrite conflicting entries. Removed upstream
+skills lose only their generated entry points and Claude aliases.
+
+To test just this installation without running other dotfiles installers:
+
+```sh
+python3 -m unittest discover -s tests -v
+chezmoi apply --exclude scripts ~/.local/share/agent-skill-sources
+chezmoi execute-template -f run_after_install-agent-skills.sh.tmpl | bash
+shelley skill ls
+```
+
 ## Shared static artifacts
 
 Use file-based publishing instead of Claude Artifacts, chat-embedded

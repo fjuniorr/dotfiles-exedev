@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Reconcile entry points after chezmoi has extracted the pinned source archives.
+python3 - {{ .chezmoi.homeDir | quote }} {{ .agentSkills | toJson | squote }} <<'PYTHON'
+{{ include ".chezmoitemplates/agent-skills.py" }}
+PYTHON

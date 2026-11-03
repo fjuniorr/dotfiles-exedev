@@ -1,6 +1,4 @@
-# Skills installed from GitHub and managed by chezmoi.
-# `chezmoi apply` fetches the repo tarball into each tool's skills dir;
-# `chezmoi update` refreshes it (also auto-refreshed after refreshPeriod).
+# Book-mastery follows main, refreshed weekly or with chezmoi update.
 
 [".claude/skills/book-mastery"]
     type = "archive"
@@ -15,3 +13,17 @@
     exact = true
     stripComponents = 1
     refreshPeriod = "168h"
+
+# Shared collections are pinned; keep source trees for relative references and scripts.
+{{ range .agentSkills }}
+[".local/share/agent-skill-sources/{{ .namespace }}"]
+    type = "archive"
+    url = "https://github.com/{{ .repository }}/archive/{{ .revision }}.tar.gz"
+    exact = true
+{{ if .subtree }}
+    stripComponents = 2
+    include = ["*/{{ .subtree }}/**"]
+{{ else }}
+    stripComponents = 1
+{{ end }}
+{{ end }}
