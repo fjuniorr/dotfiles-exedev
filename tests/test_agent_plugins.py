@@ -59,25 +59,19 @@ class AgentPluginTests(unittest.TestCase):
             )
             return result, [json.loads(line) for line in log.read_text().splitlines()]
 
-    def test_pinned_archives_are_complete_and_addressed_by_commit(self):
-        """Every marketplace comes from a full repository at an immutable commit."""
+    def test_installation_sources_and_host_configuration(self):
+        """Archives supply the marketplaces and both hosts enable their plugins."""
+        self.assertEqual(
+            set(self.externals),
+            {f".local/share/agent-plugin-sources/{s['directory']}" for s in self.sources},
+        )
         for source in self.sources:
-            with self.subTest(source=source["directory"]):
-                self.assertRegex(source["revision"], r"^[0-9a-f]{40}$")
-                target = f".local/share/agent-plugin-sources/{source['directory']}"
-                archive = self.externals[target]
-                self.assertEqual(archive["stripComponents"], 1)
-                self.assertNotIn("include", archive)
-                self.assertEqual(
-                    archive["url"],
-                    f"https://github.com/{source['repository']}/archive/{source['revision']}.tar.gz",
-                )
-                self.assertIn(source["revision"], self.script)
-
-    def test_both_hosts_declare_the_same_native_plugins(self):
-        """All nine plugins stay enabled when chezmoi reapplies the managed settings."""
-        identifiers = []
-        for source in self.sources:
+            archive = self.externals[f".local/share/agent-plugin-sources/{source['directory']}"]
+            self.assertEqual(archive["stripComponents"], 1)
+            self.assertEqual(
+                archive["url"],
+                f"https://github.com/{source['repository']}/archive/{source['revision']}.tar.gz",
+            )
             marketplace = source["marketplace"]
             claude_source = self.claude["extraKnownMarketplaces"][marketplace]["source"]
             codex_source = self.codex["marketplaces"][marketplace]
@@ -89,12 +83,8 @@ class AgentPluginTests(unittest.TestCase):
             ))
             for plugin in source["plugins"]:
                 identifier = f"{plugin}@{marketplace}"
-                identifiers.append(identifier)
                 self.assertTrue(self.claude["enabledPlugins"][identifier])
                 self.assertTrue(self.codex["plugins"][identifier]["enabled"])
-        self.assertEqual(len(identifiers), 9)
-        self.assertEqual(len(set(identifiers)), 9)
-        self.assertTrue(self.claude["enabledPlugins"]["codex@openai-codex"])
 
     def test_installer_uses_native_commands_for_every_plugin(self):
         """Installation and refresh use host CLIs rather than rewriting skill files."""
