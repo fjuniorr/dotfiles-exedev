@@ -1,8 +1,0 @@
-{{- $plugins := list -}}
-{{- range .agentPlugins -}}
-{{- $marketplace := .marketplace -}}
-{{- range .plugins -}}
-{{- $plugins = append $plugins (printf "%s@%s" . $marketplace) -}}
-{{- end -}}
-{{- end -}}
-{{ dict "plugins" $plugins | toPrettyJson }}
