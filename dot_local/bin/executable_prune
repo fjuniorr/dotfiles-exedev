@@ -93,6 +93,11 @@ heading 'Docker'
 # Removes only what nothing references: dangling images, stopped containers,
 # unused networks, build cache. Running containers and their images are untouched.
 sweep 'unreferenced objects' docker system prune -f
+# Run with the stack up: a stopped stack's volumes count as unused too.
+if command -v docker >/dev/null 2>&1 && ! $APPLY; then
+  docker volume ls -q -f dangling=true 2>/dev/null | sed 's/^/    unused volume: /'
+fi
+sweep 'unused volumes' docker volume prune -af
 
 heading 'Journals'
 if sudo -n true 2>/dev/null; then
