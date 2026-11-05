@@ -36,27 +36,16 @@ VM — never run `gh auth login` or set up tokens.
 - `/usr/local/bin/gh` defaults to the integration host, including in
   noninteractive shells and services. Use an explicit repo:
   `gh pr list -R OWNER/REPO`
-- Use `gh issue create`, `gh pr create`, and `gh pr merge --squash` normally.
-  These worked through the proxy with gh 2.103.3 on November 4–5, 2026;
-  GraphQL writes are not generally blocked. Use `--body-file` for issue
-  and PR bodies rather than inlining them.
-- Avoid `-d` / `--delete-branch` when merging through the proxy. In the same
-  tests, `gh pr merge -sd` merged successfully, then failed with HTTP 400
-  deleting the remote branch: the proxy rejects the encoded `heads%2F...`
-  path. Check the PR's merge state before retrying. If remote branch deletion
-  is requested, confirm it is merged, then use the tested unencoded path:
+- Use `--body-file` for issue and PR bodies rather than inlining them.
+- Merge with `gh pr merge --squash`, without `-d` / `--delete-branch`.
+  If remote branch deletion is requested, confirm the PR is merged, then use:
   `gh api -X DELETE repos/OWNER/REPO/git/refs/heads/BRANCH`.
-  This deletes only the remote branch.
-- `--attach` fails before uploading because gh treats the proxy hostname as
-  GitHub Enterprise Server. Changing credentials will not fix this check.
-- `gh api user --jq '.login'` fails: the proxy rejects `/user` because it
-  names no repository, and the JSON filter hides the explanation. Identify
-  the integration actor with
+  Keep the literal `/` after `heads`; the proxy rejects `%2F`.
+- Do not use `--attach` through the proxy.
+- Identify the integration actor with
   `gh api graphql -f query='{viewer{login}}' --jq '.data.viewer.login'`.
-  For read-only API diagnostics, use `--include` without `--jq` to see the
+- For read-only API diagnostics, use `--include` without `--jq` to see the
   HTTP status and error body.
-- Test details: `~/pim/notes/20261104T193900.md`. Do not infer that other
-  commands fail from one rejected request.
 - For clone auth/404 errors, check whether the repo integration is attached.
   If missing, ask the user to run:
   `ssh exe.dev integrations add github --name NAME --repository OWNER/REPO --attach vm:VM_NAME`
