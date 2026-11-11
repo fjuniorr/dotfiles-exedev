@@ -1,15 +1,12 @@
 # AWS SSO on exe.dev VMs
 
-When a task needs AWS access and the SSO session is expired or missing, start
-the login yourself rather than asking me to run a command:
+When AWS access fails because the SSO session is missing or expired (including
+`just db-tunnel` and the `production_*` recipes), log in yourself instead of
+asking me to:
 
 ```sh
 aws sso login --profile ficks --use-device-code --no-browser
 ```
 
-For a different profile, use the profile required by the task. Show me the
-verification URL and device code printed by AWS and ask me to approve the
-login in my browser. Leave the login process running while awaiting approval;
-do not open the URL or approve it yourself. Once login succeeds, retry the
-blocked command. If the device code expires, start a new login and show me
-the new URL and code.
+Keep it running, show me the URL and code it prints, and ask me to approve.
+Never approve it yourself. Retry the blocked command once it succeeds.
