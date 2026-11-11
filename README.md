@@ -78,15 +78,12 @@ does not rename skills, rewrite `SKILL.md`, or generate wrapper instructions.
 | Source | Plugin IDs | Exported skills |
 | --- | --- | --- |
 | `mattpocock/skills` | `mattpocock-skills@mattpocock` | 27 |
-| `humanlayer/skills` | Seven plugins under the `skills` marketplace | 7 |
 | `cursor/plugins` | Only `pstack@cursor-plugins` | 58 |
 
-Both hosts load **92 skills** from these nine plugins. The manifests exclude
+Both hosts load **85 skills** from these two plugins. The manifests exclude
 12 of Matt's experimental/miscellaneous skills and pstack's three Benny
 automation skills. Those files remain in the source snapshots but are not
-exported as commands. HumanLayer's plugins are `rpi`, `improve-claude-md`,
-`narrow-react-prop-types`, `build-iterated-agentic-loop`, `design-control-loop`,
-`show-me`, and `visual-pr`.
+exported as commands.
 
 The plugin manifest's name provides the namespace, not its marketplace:
 
@@ -94,7 +91,6 @@ The plugin manifest's name provides the namespace, not its marketplace:
 | --- | --- |
 | `/mattpocock-skills:tdd` | `$mattpocock-skills:tdd` |
 | `/pstack:tdd` | `$pstack:tdd` |
-| `/rpi:rpi` | `$rpi:rpi` |
 
 Use `/reload-plugins` in Claude Code or start a new session after installation;
 start a new Codex session to load its plugins. For a harmless invocation test,
